@@ -12,7 +12,8 @@ def get_records():
     for result in results:
         record = browser.get_record(result)
         download_pdf(record)
-        print(record + "\n----------------------------------")
+        print(record)
+        print("\n----------------------------------")
     browser.go_to_next_page(driver)
 
 
@@ -20,8 +21,9 @@ def download_pdf(record):
     file_path = dir_path + '\\output\\pdf\\' + record['reg_num'] + '.pdf'
     try:
         urllib.request.urlretrieve(record['file_link'], file_path)
-    except():
+    except:
         return
+
 
 if __name__ == "__main__":
     driver = browser.start(debug=DEBUG)
