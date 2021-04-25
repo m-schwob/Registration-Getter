@@ -38,8 +38,9 @@ def go_to_year(driver, year):
 
 def go_to_next_page(driver):
     next_page = driver.find_elements_by_xpath("//a[@class='pagenav' and text()='סיום']")
+    #case list len is greater then 1
     if(next_page): 
-        next_page.click()
+        next_page[0].click()
         handle_empty_response(driver)
         return True
     return False
