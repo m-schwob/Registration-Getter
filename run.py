@@ -15,7 +15,7 @@ def get_records():
         record = browser.get_record(result)
         records_list.append(record)
         # download_pdf(record)
-    return results
+    return len(results)
 
 
 # download the pdf of a record
@@ -32,9 +32,10 @@ def get_year(year):
     logging.info('getting %d', year)
     browser.go_to_year(scrapper, year)
     while(True):
-        get_records()
+        record_num = get_records()
+        logging.info('year %d page %s: %d record scrapped', year, browser.get_page_number(scrapper),record_num)
         if not browser.go_to_next_page(scrapper): break
-    logging.info('%d done')
+    logging.info('%d done', year)
 
 
 # export the records list to excel
@@ -45,12 +46,12 @@ def export_excel():
 
 if __name__ == "__main__":
     logging.basicConfig(filename='.\\output\\logger.log', level=logging.DEBUG)
-    scrapper = browser.start(debug=DEBUG)
+    scrapper = browser.start(debug=True)
     records_list = []
 
     # thread/async
     # progress and status holding
-    for year in [2005]: #(2004,2022,1):
+    for year in range(2004,2022,1):
         get_year(year)
 
     export_excel()

@@ -2,6 +2,7 @@ import os
 import logging
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.support.select import Select
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC 
@@ -17,7 +18,7 @@ def start(debug):
     if not debug: options.add_argument("headless")
 
     logging.info("open web driver..")
-    driver = webdriver.Chrome(executable_path=CHROME_DRIVER_PATH, options=options, service_log_path='.\\output\\logger.log')
+    driver = webdriver.Chrome(executable_path=CHROME_DRIVER_PATH, options=options, service_log_path='.\\output\\driver.log')
     logging.info("loading site..")
     driver.get(CAR_MOT_GOV_URL)
     handle_empty_response(driver)
@@ -34,8 +35,10 @@ def handle_empty_response(driver):
 
 # go to the first page of the given year
 def go_to_year(driver, year):
-    year_list_box = driver.find_element_by_name("cp_calendar_year")    
-    year_list_box.send_keys(year)
+    year_list_box = driver.find_element_by_xpath("//select[@name='cp_calendar_year']") 
+    select = Select(year_list_box)
+    select.select_by_value(str(year))
+    #year_list_box.send_keys(year)
     search_btn = driver.find_element_by_name("submit_search")
     search_btn.send_keys(Keys.RETURN)
     handle_empty_response(driver)
@@ -44,11 +47,19 @@ def go_to_year(driver, year):
 # go to the next records page in the current year
 def go_to_next_page(driver):
     next_page = driver.find_elements_by_xpath("//a[@class='pagenav' and text()='הבא']")
-    if(next_page): 
+    if(next_page):
         next_page[0].click()
         handle_empty_response(driver)
         return True
     return False
+
+# get th page number
+def get_page_number(driver):
+    page_navs = driver.find_elements_by_xpath("//span[@class='pagenav']")
+    for nav in page_navs:
+        if nav.text.isnumeric():
+            return nav.text
+    return "1" 
 
 
 # get a list of the records elements
