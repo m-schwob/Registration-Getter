@@ -1,6 +1,8 @@
 import browser
+import data_table
 import os 
 import urllib.request
+import pandas as pd
 #import subprocess.Popen
 
 DEBUG = True
@@ -11,8 +13,8 @@ def get_records():
     results = browser.get_page_result(scrapper)
     for result in results:
         record = browser.get_record(result)
+        records_list.append(record)
         # download_pdf(record)
-
 
 
 def download_pdf(record):
@@ -28,17 +30,21 @@ def get_year(year):
         get_records()
         if not browser.go_to_next_page(scrapper): return
 
+def export_excel():
+    df = pd.DataFrame.from_dict(records_list,)
+    df.to_excel(".\\output\\records_table.xlsx", index=False)
 
 if __name__ == "__main__":
     scrapper = browser.start(debug=DEBUG)
-    # table = DataTable.create_empty()
+    records_list = []
+
     # logging
     # thread/async
     # progress and status holding
-    for year in range(2004,2021,1):
+    for year in [2005]: #(2004,2022,1):
         get_year(year)
-    
-    #export_excel()
+
+    export_excel()
     browser.close(scrapper)
     
 
