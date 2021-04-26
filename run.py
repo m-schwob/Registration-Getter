@@ -7,14 +7,12 @@ DEBUG = True
 dir_path = os.getcwd()
 
 def get_records():
-    browser.go_to_year(driver, '2019') # for each year search records #   for each page get records, go to next page
-    results = browser.get_page_result(driver)
+     #   for each page get records, go to next page
+    results = browser.get_page_result(scrapper)
     for result in results:
         record = browser.get_record(result)
-        download_pdf(record)
-        print(record)
-        print("\n----------------------------------")
-    browser.go_to_next_page(driver)
+        # download_pdf(record)
+
 
 
 def download_pdf(record):
@@ -24,16 +22,24 @@ def download_pdf(record):
     except:
         return
 
+def get_year(year):
+    browser.go_to_year(scrapper, year) # for each year search records
+    while(True):
+        get_records()
+        if not browser.go_to_next_page(scrapper): return
+
 
 if __name__ == "__main__":
-    driver = browser.start(debug=DEBUG)
+    scrapper = browser.start(debug=DEBUG)
     # table = DataTable.create_empty()
     # logging
-    # thread
+    # thread/async
     # progress and status holding
-    get_records()
+    for year in range(2004,2021,1):
+        get_year(year)
+    
     #export_excel()
-    driver.close()
+    browser.close(scrapper)
     
 
 
