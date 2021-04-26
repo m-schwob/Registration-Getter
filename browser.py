@@ -5,6 +5,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC 
 
+
 dir_path = os.getcwd()
 CAR_MOT_GOV_URL = "http://car.mot.gov.il/"
 CHROME_DRIVER_PATH = dir_path + "\\drivers\\chromedriver.exe"
@@ -37,7 +38,7 @@ def go_to_year(driver, year):
 
 
 def go_to_next_page(driver):
-    next_page = driver.find_elements_by_xpath("//a[@class='pagenav' and text()='סיום']")
+    next_page = driver.find_elements_by_xpath("//a[@class='pagenav' and text()='הבא']")
     #case list len is greater then 1
     if(next_page): 
         next_page[0].click()
@@ -66,3 +67,6 @@ def get_record(record_elem):
     record.update({'tags': [elem.text for elem in record_elem.find_elements_by_xpath("./div[@class='cp_tags']/span[not(contains(@class,'cp_tag_label'))]")]})
     record.update({'date': record_elem.find_element_by_class_name("cp_create_date").text})
     return record
+
+def close(driver):
+    driver.close()
