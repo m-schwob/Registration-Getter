@@ -1,4 +1,5 @@
 import os 
+import logging
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
@@ -10,25 +11,28 @@ dir_path = os.getcwd()
 CAR_MOT_GOV_URL = "http://car.mot.gov.il/"
 CHROME_DRIVER_PATH = dir_path + "\\drivers\\chromedriver.exe"
 
+# start the web driver and reload the search page
 def start(debug):
     options = webdriver.ChromeOptions()
     if not debug: options.add_argument("headless")
 
-    print("open web driver..")
-    driver = webdriver.Chrome(executable_path=CHROME_DRIVER_PATH, options=options)
-    print("loading site..")
+    logging.info("open web driver..")
+    driver = webdriver.Chrome(executable_path=CHROME_DRIVER_PATH, options=options, service_log_path='.\\output\\logger.log')
+    logging.info("loading site..")
     driver.get(CAR_MOT_GOV_URL)
     handle_empty_response(driver)
-    print("site loaded")
+    logging.info("site loaded")
     return driver
 
 
+# check for EMPTY_RESPONSE. reload the page until not getting EMPTY_RESPONSE
 def handle_empty_response(driver):
     while(driver.find_elements_by_xpath("//*[@class='error-code' and text()='ERR_EMPTY_RESPONSE']")):
-        print("empty response. refreshing..")
+        logging.info("empty response. refreshing..")
         driver.refresh()
 
 
+# go to the first page of the given year
 def go_to_year(driver, year):
     year_list_box = driver.find_element_by_name("cp_calendar_year")    
     year_list_box.send_keys(year)
@@ -37,9 +41,9 @@ def go_to_year(driver, year):
     handle_empty_response(driver)
 
 
+# go to the next records page in the current year
 def go_to_next_page(driver):
     next_page = driver.find_elements_by_xpath("//a[@class='pagenav' and text()='הבא']")
-    #case list len is greater then 1
     if(next_page): 
         next_page[0].click()
         handle_empty_response(driver)
@@ -47,6 +51,7 @@ def go_to_next_page(driver):
     return False
 
 
+# get a list of the records elements
 def get_page_result(driver):
     results = driver.find_elements_by_class_name("cp_result")
     #case of no result
@@ -54,6 +59,7 @@ def get_page_result(driver):
     return results
 
 
+# scrrap data from record element to dictionary 
 def get_record(record_elem):
     texts = record_elem.find_element_by_class_name("cp_text").text.split('\n')
     record = {}
@@ -68,5 +74,6 @@ def get_record(record_elem):
     record.update({'date': record_elem.find_element_by_class_name("cp_create_date").text})
     return record
 
+# close driver
 def close(driver):
     driver.close()
