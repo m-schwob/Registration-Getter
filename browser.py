@@ -35,7 +35,10 @@ def handle_empty_response(driver):
 
 # go to the first page of the given year
 def go_to_year(driver, year):
-    year_list_box = driver.find_element_by_xpath("//select[@name='cp_calendar_year']") 
+    year_list_box = WebDriverWait(driver,10).until(
+        EC.presence_of_element_located((By.XPATH,"//select[@name='cp_calendar_year']"))
+        )
+    # year_list_box = driver.find_element_by_xpath("//select[@name='cp_calendar_year']") 
     select = Select(year_list_box)
     select.select_by_value(str(year))
     #year_list_box.send_keys(year)
@@ -76,7 +79,7 @@ def get_record(record_elem):
     record.update({'reg_num': record_elem.find_element_by_class_name("contentheading").text})
     record.update({'category': record_elem.find_element_by_class_name("cp_category").text})
     record.update({'file_link': record_elem.find_element_by_class_name("jcepopup").get_attribute("href")})
-    record.update({'tags': [elem.text for elem in record_elem.find_elements_by_xpath("./div[@class='cp_tags']/span[not(contains(@class,'cp_tag_label'))]")]})
+    record.update({'tags': (",").join([elem.text for elem in record_elem.find_elements_by_xpath("./div[@class='cp_tags']/span[not(contains(@class,'cp_tag_label'))]")])})
     record.update({'date': record_elem.find_element_by_class_name("cp_create_date").text})
 
     texts = record_elem.find_element_by_class_name("cp_text").text.split('\n')
@@ -115,5 +118,5 @@ def extract_from_texts(texts, condition, extractor):
 
 
 # close driver
-def close(driver):
-    driver.close()
+def quit(driver):
+    driver.quit()
