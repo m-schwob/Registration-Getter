@@ -5,7 +5,8 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.select import Select
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC 
+from selenium.webdriver.support import expected_conditions as EC
+from typing_extensions import Concatenate 
 
 
 dir_path = os.getcwd()
@@ -72,17 +73,30 @@ def get_page_result(driver):
 
 # scrrap data from record element to dictionary 
 def get_record(record_elem):
-    texts = record_elem.find_element_by_class_name("cp_text").text.split('\n')
     record = {}
     record.update({'reg_num': record_elem.find_element_by_class_name("contentheading").text})
     record.update({'category': record_elem.find_element_by_class_name("cp_category").text})
-    record.update({'serial_num': texts[0].split().pop()})
-    record.update({'note': texts[1]})
-    record.update({'trade_name': texts[2].split(':').pop()}) #case of more then one ':'
-    record.update({'model': texts[3].split(':').pop()}) #case of more then one ':' # case of no size is not 4
     record.update({'file_link': record_elem.find_element_by_class_name("jcepopup").get_attribute("href")})
     record.update({'tags': [elem.text for elem in record_elem.find_elements_by_xpath("./div[@class='cp_tags']/span[not(contains(@class,'cp_tag_label'))]")]})
     record.update({'date': record_elem.find_element_by_class_name("cp_create_date").text})
+
+    texts = record_elem.find_element_by_class_name("cp_text").text.split('\n')
+    i = 0
+
+    text = texts[i].split()
+    if text.pop().isnumaric() and text.pop().concat(text.pop()) == 'הוראת רישום':
+        record.update({'serial_num': texts[i].split().pop()}) #case it isnt number
+        i+=1
+    
+    text = texts[i].split()
+    if text[0] != 'דגם:' and text[0].concate(" ", text[1]) !='כינוי'
+    
+    record.update({'note': texts[1]})
+    #if len(text) > 2 and texts[2].split(':')[0]
+    record.update({'trade_name': texts[2].split(':').pop()}) #case of more then one ':'
+    record.update({'model': texts[3].split(':').pop()}) #case of more then one ':' # case of no size is not 4
+    
+    
     return record
 
 # close driver
