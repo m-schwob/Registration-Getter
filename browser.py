@@ -6,7 +6,6 @@ from selenium.webdriver.support.select import Select
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from typing_extensions import Concatenate 
 
 
 dir_path = os.getcwd()
@@ -81,23 +80,39 @@ def get_record(record_elem):
     record.update({'date': record_elem.find_element_by_class_name("cp_create_date").text})
 
     texts = record_elem.find_element_by_class_name("cp_text").text.split('\n')
-    i = 0
-
-    text = texts[i].split()
-    if text.pop().isnumaric() and text.pop().concat(text.pop()) == 'הוראת רישום':
-        record.update({'serial_num': texts[i].split().pop()}) #case it isnt number
-        i+=1
-    
-    text = texts[i].split()
-    if text[0] != 'דגם:' and text[0].concate(" ", text[1]) !='כינוי'
-    
-    record.update({'note': texts[1]})
-    #if len(text) > 2 and texts[2].split(':')[0]
-    record.update({'trade_name': texts[2].split(':').pop()}) #case of more then one ':'
-    record.update({'model': texts[3].split(':').pop()}) #case of more then one ':' # case of no size is not 4
-    
-    
+    record.update(scrap_record_text(texts, record))
     return record
+
+# scraping the information from the texts part of the record to the dictionary
+def scrap_record_text(texts, record):
+    condition = lambda text: 'הוראת רישום' in text and text.split().pop().isdecimal()
+    extractor = lambda text: text.split().pop()
+    record.update({'serial_num': extract_from_texts(texts, condition, extractor)})
+
+    condition = lambda text: text.startswith('כינוי מסחרי:')
+    extractor = lambda text: text.split(':').pop()
+    record.update({'trade_name': extract_from_texts(texts, condition, extractor)})
+
+    condition = lambda text: text.startswith('דגם:')
+    extractor = lambda text: text.split(':').pop()
+    record.update({'model': extract_from_texts(texts, condition, extractor)})
+
+    condition = lambda text: text == 'קובץ להורדה'
+    extractor = lambda text: text.split(':').pop()
+    extract_from_texts(texts, condition, extractor)
+
+    record.update({'note': ("\n").join(texts)})
+
+    return record
+
+
+# note: delete text item if condition is match
+def extract_from_texts(texts, condition, extractor):
+    for i in range(len(texts)):
+        if condition(texts[i]):
+            return extractor(texts.pop(i))
+    return None
+
 
 # close driver
 def close(driver):
