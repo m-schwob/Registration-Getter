@@ -59,7 +59,7 @@ if __name__ == "__main__":
     # thread/async
     # progress and status holding
     try:
-        for year in [2006]: #range(2004,2022,1):
+        for year in range(2004,2022,1):
             get_year(year)
 
         export_excel()
