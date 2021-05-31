@@ -1,25 +1,12 @@
-import aiohttp
-import aiofiles
 import asyncio
+import aiofiles
+import aiohttp
 from asyncio import queues
 import json
+import re
 
 RECORDS_FOR_PAGE = 10
 URL = "https://www.gov.il/he/api/DynamicCollector"
-
-async def main():
-    async with aiohttp.ClientSession() as session:
-        async with  session.post(URL,json=PAYLOAD) as resp:
-            # data = await resp.json()
-            data = await resp.json()
-            print(data)
-    
-    #     async with session.post(url, json=req):
-    #         async with session.get(url) as resp:
-    #             # print(resp)
-    #             data = await resp.json()
-    # # print(data)
-    # # hashrate = json.loads(data) 
 
 # 
 #     search()
@@ -41,42 +28,48 @@ async def payload_factory(offset=0, **kwargs):
             }  
     return json.dumps(payload)
 
+
 async def format_record(record):
     return {
-        "register_number": record["Data"]["year_of_manufacture"],
+        "registration_number": re.search("\d{2,3}-\d{4}", record["Data"]["title"]),
         "year_of_manufacture": record["Data"]["year_of_manufacture"],
         "manufacturer": record["Data"]["manufacturer"],
         "instruction_number": record["Data"]["instruction_number"],
         "vehicle_type": record["Data"]["vehicle_type"],
         "extension_of_validity": record["Data"]["extension_of_validity"],
-        "Description": record["Description]"],
-        "UrlName": record["UrlName"]
+        "Description": record["Description"],
+        "UrlName": record["UrlName"],
+        "url": record["Data"]["link1"]["URL"]
     }
     
 # search filter available by the optional paramters -> "manufacturer","year_of_manufacture","instruction_number","vehicle_type" 
 async def get_records(result=None, session=None, offset=0, **kwargs):
     if session is None:
-        session = await aiohttp.ClientSession()
-    payload = json.loads(payload_factory(offset=offset, kwargs=kwargs))
+        session = aiohttp.ClientSession()
+    payload = json.loads(await payload_factory(offset=offset, kwargs=kwargs))
     async with session.post(URL,json=payload) as resp:
         data = await resp.json()
-    if type(result) is queues.Queue():
+    if type(result) is queues.Queue:
         for res in data["Results"]:
-            result.put(await format_record(res))
+            print(await format_record(res))
+            #result.put(await format_record(res))
     else:
         return data
 
-get_total_records()
+async def get_total_records():
+    return (await get_records())["TotalResults"]
 
 async def create_tasks(loop, queue): 
     async with aiohttp.ClientSession() as session:
-        for i in range(start=0, stop=get_total_records(), step=RECORDS_FOR_PAGE):
-            loop.create_task(get_records(offset=i, res=queue))
+        for i in range(0, await get_total_records(), RECORDS_FOR_PAGE):
+            # loop.create_task(get_records(offset=i, res=queue))
+            await get_records(offset=i, session=session, result=queue)
 
 
 records = queues.Queue()
 loop = asyncio.get_event_loop()
-create_tasks(loop, records)
-loop.run_until_complete(main())
+loop.run_until_complete(create_tasks(loop, records))
+# while(not records.empty()):
+#     print(records.get())
 
 
