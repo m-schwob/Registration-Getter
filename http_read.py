@@ -1,9 +1,25 @@
 import asyncio
+import logging
 import aiofiles
 import aiohttp
 from asyncio import queues
 import json
 import re
+
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
+formatter = logging.Formatter('%(asctime)s:%(name)s:%(levelname)s:%(message)s')
+
+file_handler = logging.FileHandler('scraper.log')
+file_handler.setLevel(logging.WARNING)
+file_handler.setFormatter(formatter)
+
+stream_handler = logging.StreamHandler()
+
+logger.addHandler(file_handler)
+logger.addHandler(stream_handler)
+
 
 RECORDS_FOR_PAGE = 10
 URL = "https://www.gov.il/he/api/DynamicCollector"
